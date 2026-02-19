@@ -1,0 +1,15 @@
+Analysis for Outcome: gys_rla_g08 
+Balanced districts N = 4313 
+=========================================
+
+Overall ATT:  
+     ATT    Std. Error     [ 95%  Conf. Int.]  
+ -0.2045        0.0296    -0.2626     -0.1465 *
+
+
+Overall ACRT:  
+  ACRT    Std. Error     [ 95%  Conf. Int.] 
+ 0.184         0.113    -0.0374      0.4054 
+---
+Signif. codes: `*' confidence band does not cover 0
+
