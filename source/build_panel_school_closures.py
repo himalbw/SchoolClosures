@@ -6,13 +6,13 @@ from pathlib import Path
 
 def main():
     INDIR = Path("data/raw/closures")
-    INDIR_ENROLLMENT = Path("data/clean/controls/School")
+    INDIR_ENROLLMENT = Path("data/clean")
     INDIR_CW = Path("data/raw/crosswalks")
     OUTDIR = Path("data/clean/closures")
     YEARS = list(range(2016, 2024))
 
     df_closures = pd.read_csv(INDIR / "School_Overall_Shares_03.08.23.csv")
-    df_enrollment_by_school = pd.read_csv(INDIR_ENROLLMENT / "seda_school_pooled.csv")
+    df_enrollment_by_school = pd.read_csv(INDIR_ENROLLMENT / "school_controls.csv")
     cw_school_district = pd.read_csv(INDIR_CW / "cw_seda.csv")
 
     df_closures = clean_closures(df_closures)
