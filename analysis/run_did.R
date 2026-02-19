@@ -2,22 +2,13 @@ library(tidyverse)
 library(did)
 
 main <- function() {
-    INDIR <- "data/clean"
-    OUTDIR <- "figures/figure_att_aggregated"
-    dir.create(OUTDIR, recursive = TRUE, showWarnings = FALSE)
-
-    panel_closures <- read_csv(file.path(INDIR_NEWSPAPERS, "panel_newspapers_county.csv"), show_col_types = FALSE)
-
-    panel_outcomes <- read_csv(file.path(INDIR_TWITTER, "panel_twitter_county.csv"), show_col_types = FALSE)
-
-    panel <- prepare_panel(panel_closures, panel_outcomes)
-
-
-}
-
-
-prepare_panel <- function(panel_closures, panel_outcomes) {
-
+    INDIR_SCHOOL_PANEL <- # read in school panel dir
+    INDIR_OUTCOME_PANEL <- "./Data/clean/admindist_outcomes_and_controls.csv"
+    
+    #outcome_df <- read_csv(INDIR_OUTCOME_PANEL)
+    #school_df <- read_csv(INDIR_SCHOOL_PANEL)
+    
+    #merged_df <- # merge outcome and school_df 
 }
 
 
