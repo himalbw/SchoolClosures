@@ -75,10 +75,10 @@ run_contdid <- function(df, outcome_var) {
   return(res_level)
 }
 
+
+
 main <- function() {
   did_df <- read_csv("./Data/clean/did_panel.csv")
-  
-  # 3. Define the full list of variables from your output
   outcome_list <- c(
     "gys_mth_g08", "gys_rla_g08", "gys_mth_g03", 
     "gys_mth_g04", "gys_mth_g05", "gys_mth_g06", 
@@ -91,9 +91,79 @@ main <- function() {
     model_result <- try(run_contdid(did_df, out))
     if (!inherits(model_result, "try-error")) { results_storage[[out]] <- model_result}}
 
-  message("All done!!")
+  message("All done with uncontrolled!!")
+
   return(results_storage)
 }
 
 # results <- main() 
 # depending on variable between 3000 and 5000 districts incldued
+
+run_contdid_residualized <- function(df, outcome_var) {
+  controls <- c("enrollment_dist", "perc_black", "log_median_income", 
+                "poverty_rate", "unemployment_rate", "urban", "town", "suburb")
+  formula_str <- as.formula(paste(outcome_var, "~", paste(controls, collapse = " + ")))
+  reg_df <- df %>% drop_na(all_of(c(outcome_var, controls)))
+  resid_model <- lm(formula_str, data = reg_df)
+  reg_df$adj_outcome <- resid(resid_model)
+  
+  analysis_df <- reg_df %>%
+    select(sedaadmin, year, dosage, adj_outcome) %>%
+    mutate(time_step = case_when(
+      year == 2016 ~ 1, year == 2017 ~ 2, year == 2018 ~ 3,
+      year == 2021 ~ 4, year == 2022 ~ 5, year == 2023 ~ 6
+    )) %>%
+    filter(!is.na(time_step)) %>%
+    mutate(G_step = ifelse(dosage > 0, 4, 0)) %>%
+    group_by(sedaadmin) %>%
+    mutate(dosage = first(dosage)) %>%
+    filter(n() == 6) %>% 
+    ungroup()
+  
+  res_dose <- cont_did(
+    data = analysis_df,
+    yname = "adj_outcome", # This is your 'controlled' outcome
+    tname = "time_step",
+    idname = "sedaadmin",
+    dname = "dosage",
+    gname = "G_step",
+    target_parameter = "level",
+    aggregation = "dose",
+    treatment_type = "continuous",
+    control_group = "nevertreated",
+    biters = 100,
+    cband = TRUE
+  )
+  
+  p_att <- ggcont_did(res_dose, type = "att") + 
+    labs(title = paste("Controlled ATT:", outcome_var),
+         subtitle = "Residualized for demographics, income, and urbanicity")
+  
+  ggsave(filename = paste0("./output/figures/controlled_att_", outcome_var, ".png"), plot = p_att)
+  
+  return(res_dose)
+}
+
+main_controlled <- function() {
+  did_df <- read_csv("./Data/clean/did_panel.csv")
+  outcome_list <- c(
+    "gys_mth_g08", "gys_rla_g08", "gys_mth_g03", 
+    "gys_mth_g04", "gys_mth_g05", "gys_mth_g06", 
+    "gys_mth_g07", "gys_rla_g03", "gys_rla_g04", 
+    "gys_rla_g05", "gys_rla_g06", "gys_rla_g07"
+  )
+  controlled_results <- list()
+  
+  for (out in outcome_list) {
+    message(paste("--- Starting Controlled Analysis:", out, "---"))
+    
+    model_result <- try(run_contdid_controlled(did_df, out))
+    
+    if (!inherits(model_result, "try-error")) {
+      controlled_results[[out]] <- model_result
+    }
+  }
+  
+  message("All controlled analyses complete. Check ./output/figures/ for 'controlled_att_' files.")
+  return(controlled_results)
+}
