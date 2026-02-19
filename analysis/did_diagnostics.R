@@ -129,6 +129,34 @@ tercile_stats <- function(balanced_df) {
   write.csv(summary_tab, "./output/tables/descriptives/tercile_balance_table.csv")
 }
 
+generate_diff_stats <- function(df, score_var) {
+  stats <- df %>%
+    mutate(period = case_when(
+      year <= 2018 ~ "Pre",
+      year >= 2021 ~ "Post"
+    )) %>%
+    filter(!is.na(period)) %>%
+    group_by(dosage_group, period) %>%
+    summarise(mean_score = mean(!!sym(score_var), na.rm = TRUE), .groups = "drop") %>%
+    pivot_wider(names_from = period, values_from = mean_score) %>%
+    mutate(
+      Difference = Post - Pre,
+      Group_Label = case_when(
+        dosage_group == 0 ~ "Fully In-Person",
+        dosage_group == 1 ~ "Low Remote",
+        dosage_group == 2 ~ "Mid Remote",
+        dosage_group == 3 ~ "High Remote"
+      )
+    ) %>%
+    select(Group_Label, Pre, Post, Difference)
+  
+  message(paste("\n--- Pre vs Post Summary for:", score_var, "---"))
+  print(stats)
+  
+  write.csv(stats, paste0("./output/tables/diff_stats_", score_var, ".csv"), row.names = FALSE)
+  return(stats)
+}
+
 state_diag <- function(balanced_df) {
 state_diagnostics <- balanced_df %>%
   group_by(stateabb) %>%
