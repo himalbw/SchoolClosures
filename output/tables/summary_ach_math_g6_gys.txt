@@ -1,0 +1,14 @@
+Analysis for Outcome: ach_math_g6_gys 
+=========================================
+
+Overall ATT:  
+    ATT    Std. Error     [ 95%  Conf. Int.]  
+ -0.183        0.0319    -0.2455     -0.1204 *
+
+
+Overall ACRT:  
+    ACRT    Std. Error     [ 95%  Conf. Int.]  
+ -0.2285        0.0883    -0.4015     -0.0555 *
+---
+Signif. codes: `*' confidence band does not cover 0
+

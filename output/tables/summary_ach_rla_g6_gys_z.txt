@@ -1,0 +1,18 @@
+Analysis for Outcome: ach_rla_g6_gys_z 
+=========================================
+
+Overall ATT:  
+     ATT    Std. Error     [ 95% 
+ -0.1422        0.0168    -0.1752
+ Conf. Int.]  
+     -0.1093 *
+
+
+Overall ACRT:  
+   ACRT    Std. Error     [ 95%  Conf. Int.]
+ 0.0388        0.0551    -0.0692      0.1467
+ 
+ 
+---
+Signif. codes: `*' confidence band does not cover 0
+
