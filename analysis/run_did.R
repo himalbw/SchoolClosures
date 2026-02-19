@@ -63,13 +63,9 @@ run_contdid <- function(df, outcome_var) {
 }
 
 main <- function() {
-  # 1. Load Data
   outcome_df <- read_csv("./Data/clean/admindist_outcomes_and_controls.csv")
   school_df <- read_csv("./Data/clean/panel_closures.csv")
-  
-  # 2. Join
-  merged_df <- outcome_df %>% 
-    left_join(school_df, by = c("district_id", "year"))
+  merged_df <- outcome_df %>% left_join(school_df, by = c("district_id", "year"))
   
   # 3. Define the full list of variables from your output
   outcome_list <- c(
@@ -83,13 +79,10 @@ main <- function() {
     "ach_rla_g5_gys_z", "ach_rla_g6_gys_z", "ach_rla_g7_gys_z"
   )
   
-  # 4. Loop through and run
   results_storage <- list()
-  
   for (out in outcome_list) {
-    message(paste("--- Starting Analysis for:", out, "---"))
+    message(paste("Running Callaway-Sant-Anna ContDid (2021) for:", out, "---"))
     
-    # Wrap in try() so if one outcome fails (e.g., all NAs), the loop continues
     model_result <- try(run_contdid(merged_df, out))
     
     if (!inherits(model_result, "try-error")) {
@@ -97,9 +90,8 @@ main <- function() {
     }
   }
   
-  message("All analyses complete. Check ./output/ for files.")
+  message("All done!!")
   return(results_storage)
 }
 
-# Execute
-results <- main() 
+# results <- main() 
