@@ -8,7 +8,7 @@ def main():
     INDIR = Path("data/raw/closures")
     INDIR_ENROLLMENT = Path("data/clean")
     INDIR_CW = Path("data/raw/crosswalks")
-    OUTDIR = Path("data/clean/closures")
+    OUTDIR = Path("data/clean")
     YEARS = list(range(2016, 2024))
 
     df_closures = pd.read_csv(INDIR / "School_Overall_Shares_03.08.23.csv")
@@ -17,6 +17,8 @@ def main():
 
     df_closures = clean_closures(df_closures)
     df_closures = add_district(df_closures, cw_school_district)
+    df_closures = add_enrollment(df_closures, df_enrollment_by_school)
+    df_closures = aggregate_to_district(df_closures)
     panel = build_panel(df_closures, YEARS)
 
     panel.to_csv(OUTDIR / "panel_closures.csv", index=False)
@@ -51,6 +53,7 @@ def add_district(df_closures, cw_school_district):
         .rename(columns=rename_table)
         [["nces_school_id", "seda_school_id", "district_id"]]
     )
+
     df_closures_with_district = (
         df_closures
         .merge(cw_school_district_clean, how="left", on="nces_school_id")
@@ -60,15 +63,20 @@ def add_district(df_closures, cw_school_district):
 
     return df_closures_with_district
 
+def add_enrollment(df_closures, df_enrollment):
+    df_enrollment_clean = df_enrollment.rename(columns={"sedasch": "seda_school_id", "totenrl": "enrollment"})
 
-def aggregate_to_district(df_closures, df_enrollment):
-
-    df_enrollment_clean = df_enrollment.rename({""})
-
-    df_closures_agg = (
+    df_closures_with_enrollment = (
         df_closures
         .merge(df_enrollment_clean, how="left", on=["seda_school_id"])
         .assign(weighted_dosage=lambda x: x["dosage"] * x["enrollment"])
+    )
+    return df_closures_with_enrollment
+
+
+def aggregate_to_district(df_closures):
+    df_closures_agg = (
+        df_closures
         .groupby(["district_id"], as_index=False)
         .agg({"weighted_dosage": "sum", "enrollment": "sum"})
         .assign(dosage=lambda x: x["weighted_dosage"] / x["enrollment"])
