@@ -6,7 +6,7 @@ from pathlib import Path
 
 def main():
     INDIR = Path("data/raw/closures")
-    INDIR_ENROLLMENT = Path("data/raw/controls/School")
+    INDIR_ENROLLMENT = Path("data/clean/controls/School")
     INDIR_CW = Path("data/raw/crosswalks")
     OUTDIR = Path("data/clean/closures")
     YEARS = list(range(2016, 2024))
@@ -38,6 +38,7 @@ def clean_closures(df_closures):
     )
     return df_closures_clean
 
+
 def add_district(df_closures, cw_school_district):
     rename_table = {
         "ncessch": "nces_school_id",
@@ -61,31 +62,30 @@ def add_district(df_closures, cw_school_district):
 
 
 def aggregate_to_district(df_closures, df_enrollment):
-    rename_table = {
-        "sedasch": "seda_school_id",
-        "": "enrollment"
-    }
-    df_enrollment = (
-        df_enrollment
-        .rename()
-        [["seda_school_id", "enrollment"]]
-    )
+
+    df_enrollment_clean = df_enrollment.rename({""})
+
     df_closures_agg = (
         df_closures
-        .merge(df_enrollment, how="left", on=["seda_school_id"])
-        .assign(weighted_dosage = lambda x: x["dosage"])
+        .merge(df_enrollment_clean, how="left", on=["seda_school_id"])
+        .assign(weighted_dosage=lambda x: x["dosage"] * x["enrollment"])
+        .groupby(["district_id"], as_index=False)
+        .agg({"weighted_dosage": "sum", "enrollment": "sum"})
+        .assign(dosage=lambda x: x["weighted_dosage"] / x["enrollment"])
+        [["district_id", "dosage"]]
     )
     return df_closures_agg
 
 
 def build_panel(df_closures, years):
-    ids = list(df_closures["id"].unique())
+    ids = list(df_closures["district_id"].unique())
     empty_panel = (
-        pd.MultiIndex.from_product([ids, years], names=["id", "year"])
+        pd.MultiIndex.from_product([ids, years], names=["district_id", "year"])
         .to_frame(index=False)
     )
-    panel = empty_panel.merge(df_closures, how="left", on=["id"])
+    panel = empty_panel.merge(df_closures, how="left", on=["district_id"])
     return panel
 
 if __name__ == "__main__":
     main()
+

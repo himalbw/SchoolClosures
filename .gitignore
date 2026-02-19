@@ -1,3 +1,4 @@
-S/tmp
+/tmp
 *.DS_store
+*.idea
 
